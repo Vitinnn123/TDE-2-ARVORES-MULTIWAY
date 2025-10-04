@@ -3,7 +3,7 @@
 - **Instituição:** Pontifícia Universidade Católica do Paraná    
 - **Professor:** Andrey Cabral Meira
 - **Alunos:**  
-  - Gustavo Ferronatto Ribeiro — [@]()   
+  - Gustavo Ferronatto Ribeiro — [@gustavoferronattoribeiro](https://github.com/gustavoferronattoribeiro)   
   - Victor Augusto Esmaniotto — [@Vitinnn123](https://github.com/Vitinnn123) 
 ---
 ## Pesquisa sobre Árvores Multiway:
