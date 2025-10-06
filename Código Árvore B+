@@ -1,71 +1,141 @@
-import java.util.*;
-
 class ArvoreBMais {
     int ordem = 3;
-    List<List<Integer>> folhas = new ArrayList<>();
-    List<Integer> raiz = new ArrayList<>();
+    
+    int[][] folhas = new int[10][10];   // até 10 folhas, cada uma com até 10 valores
+    int[] qtdElementosFolha = new int[10]; // quantidade de elementos em cada folha
+    int qtdFolhas = 1; // começa com 1 folha
+
+    int[] raiz = new int[10];   // separadores
+    int qtdElementosRaiz = 0;
 
     public ArvoreBMais() {
-        folhas.add(new ArrayList<>());
+        // primeira folha já existe
+        qtdElementosFolha[0] = 0;
     }
 
-    // Insere mantendo limite de ordem
+    // -------- INSERIR --------
     public void inserir(int chave) {
-        List<Integer> folha = folhas.get(folhas.size() - 1);
-        folha.add(chave);
-        Collections.sort(folha);
+        int folhaIndex = qtdFolhas - 1;
+        int pos = qtdElementosFolha[folhaIndex];
 
-        // se estourou a capacidade, dividir folha
-        if (folha.size() > ordem) {
-            List<Integer> novaFolha = new ArrayList<>(folha.subList(folha.size()/2, folha.size()));
-            folha.subList(folha.size()/2, folha.size()).clear();
-            folhas.add(novaFolha);
+        // adiciona no fim da folha
+        folhas[folhaIndex][pos] = chave;
+        qtdElementosFolha[folhaIndex]++;
+
+        // ordena manualmente
+        bubbleSort(folhas[folhaIndex], qtdElementosFolha[folhaIndex]);
+
+        // se estourou a ordem, dividir a folha
+        if (qtdElementosFolha[folhaIndex] > ordem) {
+            dividirFolha(folhaIndex);
         }
 
         atualizarRaiz();
         mostrarEstado("Inseriu " + chave);
     }
 
-    // Remove o valor 15 e reorganiza
+    // -------- REMOVER 15 --------
     public void remover15() {
-        for (List<Integer> folha : folhas) {
-            folha.remove((Integer)15);
+        for (int f = 0; f < qtdFolhas; f++) {
+            int pos = buscarPosicao(folhas[f], qtdElementosFolha[f], 15);
+            if (pos != -1) {
+                // remove deslocando
+                for (int j = pos; j < qtdElementosFolha[f] - 1; j++) {
+                    folhas[f][j] = folhas[f][j + 1];
+                }
+                qtdElementosFolha[f]--;
+            }
         }
 
-        // rebalanceamento: vai junta a folha vazia ou a menor com a da esquerda
-        if (folhas.size() > 1 && folhas.get(1).isEmpty()) {
-            folhas.remove(1);
-        } else if (folhas.size() > 1 && folhas.get(1).size() == 1) {
-            folhas.get(0).addAll(folhas.get(1));
-            Collections.sort(folhas.get(0));
-            folhas.remove(1);
+        // Rebalanceamento simples
+        if (qtdFolhas > 1 && qtdElementosFolha[1] == 0) {
+            // remove folha vazia
+            removerFolha(1);
+        } else if (qtdFolhas > 1 && qtdElementosFolha[1] == 1) {
+            // junta folhas
+            int qtd1 = qtdElementosFolha[1];
+            for (int i = 0; i < qtd1; i++) {
+                folhas[0][qtdElementosFolha[0]++] = folhas[1][i];
+            }
+            bubbleSort(folhas[0], qtdElementosFolha[0]);
+            removerFolha(1);
         }
 
         atualizarRaiz();
         mostrarEstado("Removeu 15 (rebalanceado)");
     }
 
-    // Atualiza separadores da raiz
+    // -------- AUXILIARES --------
+    private void dividirFolha(int folhaIndex) {
+        int meio = qtdElementosFolha[folhaIndex] / 2;
+        int novaIndex = qtdFolhas;
+        qtdFolhas++;
+
+        // move metade dos elementos para a nova folha
+        int qtdNova = 0;
+        for (int i = meio; i < qtdElementosFolha[folhaIndex]; i++) {
+            folhas[novaIndex][qtdNova++] = folhas[folhaIndex][i];
+        }
+
+        qtdElementosFolha[novaIndex] = qtdNova;
+        qtdElementosFolha[folhaIndex] = meio;
+    }
+
     private void atualizarRaiz() {
-        raiz.clear();
-        for (int i = 1; i < folhas.size(); i++) {
-            raiz.add(folhas.get(i).get(0));
+        qtdElementosRaiz = 0;
+        for (int i = 1; i < qtdFolhas; i++) {
+            raiz[qtdElementosRaiz++] = folhas[i][0];
+        }
+    }
+
+    private void removerFolha(int index) {
+        for (int i = index; i < qtdFolhas - 1; i++) {
+            folhas[i] = folhas[i + 1];
+            qtdElementosFolha[i] = qtdElementosFolha[i + 1];
+        }
+        qtdFolhas--;
+    }
+
+    private int buscarPosicao(int[] vetor, int qtd, int chave) {
+        for (int i = 0; i < qtd; i++) {
+            if (vetor[i] == chave) return i;
+        }
+        return -1;
+    }
+
+    private void bubbleSort(int[] vetor, int qtd) {
+        for (int i = 0; i < qtd - 1; i++) {
+            for (int j = 0; j < qtd - i - 1; j++) {
+                if (vetor[j] > vetor[j + 1]) {
+                    int temp = vetor[j];
+                    vetor[j] = vetor[j + 1];
+                    vetor[j + 1] = temp;
+                }
+            }
         }
     }
 
     private void mostrarEstado(String acao) {
         System.out.println("\n>>> " + acao);
-        if (raiz.isEmpty()) {
-            System.out.println("Raiz: " + folhas.get(0));
-        } else {
+        if (qtdElementosRaiz == 0) {
             System.out.print("Raiz: ");
-            for (int i = 0; i < raiz.size(); i++) {
-                System.out.print(raiz.get(i));
-                if (i < raiz.size() - 1) System.out.print(" | ");
+            for (int i = 0; i < qtdElementosFolha[0]; i++) {
+                System.out.print(folhas[0][i] + " ");
             }
             System.out.println();
-            for (List<Integer> folha : folhas) {
-                System.out.println("Folha: " + folha);
+        } else {
+            System.out.print("Raiz: ");
+            for (int i = 0; i < qtdElementosRaiz; i++) {
+                System.out.print(raiz[i]);
+                if (i < qtdElementosRaiz - 1) System.out.print(" | ");
+            }
+            System.out.println();
+            for (int f = 0; f < qtdFolhas; f++) {
+                System.out.print("Folha: ");
+                for (int i = 0; i < qtdElementosFolha[f]; i++) {
+                    System.out.print(folhas[f][i] + " ");
+                }
+                System.out.println();
             }
         }
     }
@@ -79,7 +149,7 @@ public class Main {
         for (int v : valores) {
             arvore.inserir(v);
         }
-        
+
         arvore.remover15();
     }
 }
