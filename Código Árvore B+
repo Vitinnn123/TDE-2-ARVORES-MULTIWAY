@@ -1,0 +1,85 @@
+import java.util.*;
+
+class ArvoreBMais {
+    int ordem = 3;
+    List<List<Integer>> folhas = new ArrayList<>();
+    List<Integer> raiz = new ArrayList<>();
+
+    public ArvoreBMais() {
+        folhas.add(new ArrayList<>());
+    }
+
+    // Insere mantendo limite de ordem
+    public void inserir(int chave) {
+        List<Integer> folha = folhas.get(folhas.size() - 1);
+        folha.add(chave);
+        Collections.sort(folha);
+
+        // se estourou a capacidade, dividir folha
+        if (folha.size() > ordem) {
+            List<Integer> novaFolha = new ArrayList<>(folha.subList(folha.size()/2, folha.size()));
+            folha.subList(folha.size()/2, folha.size()).clear();
+            folhas.add(novaFolha);
+        }
+
+        atualizarRaiz();
+        mostrarEstado("Inseriu " + chave);
+    }
+
+    // Remove o valor 15 e reorganiza
+    public void remover15() {
+        for (List<Integer> folha : folhas) {
+            folha.remove((Integer)15);
+        }
+
+        // rebalanceamento: vai junta a folha vazia ou a menor com a da esquerda
+        if (folhas.size() > 1 && folhas.get(1).isEmpty()) {
+            folhas.remove(1);
+        } else if (folhas.size() > 1 && folhas.get(1).size() == 1) {
+            folhas.get(0).addAll(folhas.get(1));
+            Collections.sort(folhas.get(0));
+            folhas.remove(1);
+        }
+
+        atualizarRaiz();
+        mostrarEstado("Removeu 15 (rebalanceado)");
+    }
+
+    // Atualiza separadores da raiz
+    private void atualizarRaiz() {
+        raiz.clear();
+        for (int i = 1; i < folhas.size(); i++) {
+            raiz.add(folhas.get(i).get(0));
+        }
+    }
+
+    private void mostrarEstado(String acao) {
+        System.out.println("\n>>> " + acao);
+        if (raiz.isEmpty()) {
+            System.out.println("Raiz: " + folhas.get(0));
+        } else {
+            System.out.print("Raiz: ");
+            for (int i = 0; i < raiz.size(); i++) {
+                System.out.print(raiz.get(i));
+                if (i < raiz.size() - 1) System.out.print(" | ");
+            }
+            System.out.println();
+            for (List<Integer> folha : folhas) {
+                System.out.println("Folha: " + folha);
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ArvoreBMais arvore = new ArvoreBMais();
+        int[] valores = {5, 10, 20, 15, 25, 30};
+
+        for (int v : valores) {
+            arvore.inserir(v);
+        }
+        
+        arvore.remover15();
+    }
+}
